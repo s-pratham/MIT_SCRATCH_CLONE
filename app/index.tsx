@@ -11,6 +11,7 @@ const characters = [
   { id: '1', name: 'Cat', image: require('../assets/cat.png') },
   { id: '2', name: 'Dog', image: require('../assets/dog.png') },
   { id: '3', name: 'Penguin', image: require('../assets/penguin.png') },
+  { id: '4', name: 'Scratch', image: require('../assets/scratch_logo.png') },
 ];
 
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
@@ -50,79 +51,75 @@ const HomeScreen = ({ navigation }: any) => {
   }
   const handlePlay = async () => {
     if (actions && actions.length > 0) {
-      let repeatMode = false;
-      let repeatActions: string[] = [];
-  
-      for (const action of actions) {
-        if (action === 'Repeat') {
-          repeatMode = true;
-          repeatActions = [];
-          continue; // Skip over 'Repeat', collect actions after it
-        }
-  
-        if (repeatMode && repeatActions.length < 3) {
-          // Collect up to 3 actions to repeat
-          repeatActions.push(action);
-        } else {
-          // If not in repeat mode, handle actions normally
-          await executeAction(action);
-        }
-  
-        if (repeatActions.length === 3 || action === 'Done Repeat') {
-          // When 3 actions are collected or 'Done Repeat' is encountered
-          for (let i = 0; i < 3; i++) {
-            for (const repeatAction of repeatActions) {
-              await executeAction(repeatAction);
+        for (const action of actions) {
+            switch (action) {
+                case 'Repeat':
+                    // Create a copy of actions to run it again
+                    const repeatActions = [...actions]; // Store current actions to repeat
+                    
+                    await executeActions(repeatActions); // Call a new helper function
+                    
+                    break;
+                default:
+                    // Handle other actions
+                    await executeAction(action);
+                    break;
             }
-          }
-          repeatMode = false;
-          repeatActions = [];
         }
-      }
     }
-  };
-  
-  // Helper function to execute actions
-  const executeAction = async (action: string) => {
+};
+
+// New helper function to execute a single action
+const executeAction = async (action) => {
     switch (action) {
-      case 'Increase Size':
-        setSize((prevSize) => prevSize + 10);
-        break;
-      case 'Decrease Size':
-        setSize((prevSize) => Math.max(prevSize - 10, 10));
-        break;
-      case 'Move X by 50':
-        setPosition((prevPos) => ({ ...prevPos, x: Math.ceil(prevPos.x + 50) }));
-        break;
-      case 'Move Y by 50':
-        setPosition((prevPos) => ({ ...prevPos, y: Math.ceil(prevPos.y + 50) }));
-        break;
-      case 'Go to (0,0)':
-        setPosition({ x: 0, y: 0 });
-        break;
-      case 'Go to random position':
-        setPosition({
-          x: Math.ceil(Math.random() * 200),
-          y: Math.ceil(Math.random() * 200),
-        });
-        break;
-      case 'Say Hello':
-        setMessage("Hello");
-        break;
-      case 'Say Hello for 1 sec':
-        setMessage("Hello");
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setMessage("");
-        break;
-      case 'Rotate 180':
-        setRotation((prevRotation) => prevRotation + 180);
-        break;
-      default:
-        console.log(`Unhandled action: ${action}`);
+        case 'Increase Size':
+            setSize((prevSize) => prevSize + 10);
+            break;
+        case 'Decrease Size':
+            setSize((prevSize) => Math.max(prevSize - 10, 10));
+            break;
+        case 'Move X by 50':
+            setPosition((prevPos) => ({ ...prevPos, x: Math.ceil(prevPos.x + 50) }));
+            break;
+        case 'Move Y by 50':
+            setPosition((prevPos) => ({ ...prevPos, y: Math.ceil(prevPos.y + 50) }));
+            break;
+        case 'Move X=50, Y=50':
+            setPosition((prevPos) => ({ ...prevPos, x: Math.ceil(prevPos.x + 50), y: Math.ceil(prevPos.y + 50) }));
+            break;
+        case 'Go to (0,0)':
+            setPosition({ x: 0, y: 0 });
+            break;
+        case 'Go to random position':
+            setPosition({
+                x: Math.ceil(Math.random() * 200),
+                y: Math.ceil(Math.random() * 200),
+            });
+            break;
+        case 'Say Hello':
+            setMessage("Hello");
+            break;
+        case 'Say Hello for 1 sec':
+            setMessage("Hello");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            setMessage("");
+            break;
+        case 'Rotate 180':
+            setRotation((prevRotation) => prevRotation + 180);
+            break;
+        default:
+            console.log(`Unhandled action: ${action}`);
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
-  };
-  
+};
+
+// New helper function to execute a list of actions
+const executeActions = async (actions) => {
+    for (const action of actions) {
+        await executeAction(action);
+    }
+};
+
 
   const handlePositionChange = (axis: 'x' | 'y', value: string) => {
     setPosition((prev) => ({ ...prev, [axis]: parseFloat(value) }));

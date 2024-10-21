@@ -12,7 +12,7 @@ type ActionScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Actio
 const blocks = [
   'Move X by 50',
   'Move Y by 50',
-  'Rotate 360',
+  'Rotate 180',
   'Go to (0,0)',
   'Move X=50, Y=50',
   'Go to random position',
@@ -29,6 +29,10 @@ export default function ActionScreen() {
 
   const handleDrop = (block: string) => {
     setActionBlocks((prev) => [...prev, block]);
+  };
+
+  const handleDelete = (index: number) => {
+    setActionBlocks((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleDone = () => {
@@ -74,6 +78,12 @@ export default function ActionScreen() {
               {actionBlocks.map((block, index) => (
                 <View key={index} style={styles.actionBlock}>
                   <Text>{block}</Text>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDelete(index)}
+                  >
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
               <DraxView
@@ -89,6 +99,7 @@ export default function ActionScreen() {
     </DraxProvider>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -163,10 +174,21 @@ const styles = StyleSheet.create({
   actionBlock: {
     height: 40,
     backgroundColor: '#a5d6a7',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     borderRadius: 5,
     marginVertical: 5,
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+  },
+  deleteButton: {
+    backgroundColor: '#ff5252',
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: 12,
   },
   dropArea: {
     height: 80,

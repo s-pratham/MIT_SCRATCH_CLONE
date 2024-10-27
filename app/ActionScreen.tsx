@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { DraxProvider, DraxView } from 'react-native-drax';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
 import { RootStackParamList } from '../app/types';
@@ -9,23 +9,33 @@ import { RootStackParamList } from '../app/types';
 // Define prop types for ActionScreen
 type ActionScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Action'>;
 
-const blocks = [
-  'Move X by 50',
-  'Move Y by 50',
-  'Rotate 180',
-  'Go to (0,0)',
-  'Move X=50, Y=50',
-  'Go to random position',
-  'Say Hello',
-  'Say Hello for 1 sec',
-  'Increase Size',
-  'Decrease Size',
-  'Repeat',
-];
-
 export default function ActionScreen() {
   const [actionBlocks, setActionBlocks] = useState<string[]>([]);
-  const navigation = useNavigation<ActionScreenNavigationProp>(); // Use typed navigation
+  const navigation = useNavigation<ActionScreenNavigationProp>();
+  const route = useRoute(); // Use route to access parameters
+
+  // Get character parameter from route
+  const { character } = route.params as { character: { id: string; name: string } };
+
+  // Optional: Use the character name in the title or somewhere else
+  useEffect(() => {
+    // You can perform actions with the character here if needed
+    console.log(`Editing actions for character: ${character.name}`);
+  }, [character]);
+
+  const blocks = [
+    'Move X by 50',
+    'Move Y by 50',
+    'Rotate 180',
+    'Go to (0,0)',
+    'Move X=50, Y=50',
+    'Go to random position',
+    'Say Hello',
+    'Say Hello for 1 sec',
+    'Increase Size',
+    'Decrease Size',
+    'Repeat',
+  ];
 
   const handleDrop = (block: string) => {
     setActionBlocks((prev) => [...prev, block]);
@@ -36,7 +46,7 @@ export default function ActionScreen() {
   };
 
   const handleDone = () => {
-    navigation.navigate('Home', { actions: actionBlocks }); // Navigate with actions
+    navigation.navigate('Home', { actions: { [character.id]: actionBlocks } }); // Navigate with actions for specific character
   };
 
   return (
@@ -47,7 +57,7 @@ export default function ActionScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>{"< Back"}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Scratch Action Editor</Text>
+          <Text style={styles.title}>{`Scratch Action Editor - ${character.name}`}</Text>
           <TouchableOpacity onPress={handleDone}>
             <Text style={styles.doneButton}>Done</Text>
           </TouchableOpacity>
@@ -106,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   topBar: {
-    height: 50,
+    height: 70,
     backgroundColor: '#007bff',
     flexDirection: 'row',
     justifyContent: 'space-between',

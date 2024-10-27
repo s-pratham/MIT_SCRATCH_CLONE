@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, TextInput, Animated } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { RouteProp, useRoute } from '@react-navigation/native';
@@ -8,217 +8,192 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ActionScreen from './ActionScreen';
 
 const characters = [
-  { id: '1', name: 'Cat', image: require('../assets/cat.png') },
-  { id: '2', name: 'Dog', image: require('../assets/dog.png') },
-  { id: '3', name: 'Penguin', image: require('../assets/penguin.png') },
-  { id: '4', name: 'Scratch', image: require('../assets/scratch_logo.png') },
+  { id: 1, name: 'Cat', image: require('../assets/cat.png') },
+  { id: 2, name: 'Dog', image: require('../assets/dog.png') },
+  { id: 3, name: 'Penguin', image: require('../assets/penguin.png') },
+  { id: 4, name: 'Scratch', image: require('../assets/scratch_logo.png') },
 ];
 
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
+// Define a type for each character's state
+type CharacterState = {
+  size: number;
+  position: { x: number; y: number };
+  rotation: number;
+  message: string;
+};
+
+// Define the main state type
+type CharacterStates = {
+  [key: string]: CharacterState;
+};
+
 const HomeScreen = ({ navigation }: any) => {
   const route = useRoute<HomeScreenRouteProp>();
-  const { actions } = route.params || {}; // Get actions from params
+  const { actions } = route.params || {};
 
-  const [selectedCharacter, setSelectedCharacter] = useState(characters[0]);
-  const [size, setSize] = useState(50); // Initial size for the sprite
+  const [characterStates, setCharacterStates] = useState<CharacterStates>(
+    characters.reduce((acc, char) => ({
+      ...acc,
+      [char.id]: {
+        size: 50,
+        position: { x: 0, y: 0 },
+        rotation: 0,
+        message: '',
+      },
+    }), {} as CharacterStates)
+  );
 
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [message,setMessage] = useState('')
-  const [rotation, setRotation] = useState(0); // New state for rotation
-  const handleGesture = Animated.event(
-    [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
-    { useNativeDriver: false }
+
+  const handleGestureEnd = useCallback(
+    (characterId: string, event) => {
+      const { translationX, translationY } = event.nativeEvent;
+      setCharacterStates((prev) => ({
+        ...prev,
+        [characterId]: {
+          ...prev[characterId],
+          position: {
+            x: Math.ceil(prev[characterId].position.x + translationX),
+            y: Math.ceil(prev[characterId].position.y + translationY),
+          },
+        },
+      }));
+      translateX.setValue(0);
+      translateY.setValue(0);
+    },
+    []
   );
 
-  const handleGestureEnd = (event: any) => {
-    const { translationX, translationY } = event.nativeEvent;
-    
-    setPosition((prevPos) => ({
-      x:Math.ceil(prevPos.x + translationX),
-      y: Math.ceil(prevPos.y + translationY),
-    }));
-    translateX.setValue(0);
-    translateY.setValue(0);
-  };
-  const handleReset = ()=>{
-    setPosition({x:0,y:0});
-    setMessage("")
-    setRotation(0); // Reset rotation
-    setSize(50)
-  }
-  const handlePlay = async () => {
-    if (actions && actions.length > 0) {
-        for (const action of actions) {
-            switch (action) {
-                case 'Repeat':
-                    // Create a copy of actions to run it again
-                    const repeatActions = [...actions]; // Store current actions to repeat
-                    
-                    await executeActions(repeatActions); // Call a new helper function
-                    
-                    break;
-                default:
-                    // Handle other actions
-                    await executeAction(action);
-                    break;
-            }
+  const handleReset = useCallback(() => {
+    setCharacterStates((prev) =>
+      Object.fromEntries(
+        Object.entries(prev).map(([id, state]) => [
+          id,
+          { ...state, position: { x: 0, y: 0 }, size: 50, rotation: 0, message: '' },
+        ])
+      )
+    );
+  }, []);
+
+  const executeAction = useCallback(
+    async (action, characterId) => {
+      setCharacterStates((prev) => {
+        const characterState = prev[characterId];
+        switch (action) {
+          case 'Increase Size':
+            return { ...prev, [characterId]: { ...characterState, size: characterState.size + 10 } };
+          case 'Decrease Size':
+            return { ...prev, [characterId]: { ...characterState, size: Math.max(characterState.size - 10, 10) } };
+          case 'Move X by 50':
+            return { ...prev, [characterId]: { ...characterState, position: { ...characterState.position, x: characterState.position.x + 50 } } };
+          case 'Move Y by 50':
+            return { ...prev, [characterId]: { ...characterState, position: { ...characterState.position, y: characterState.position.y + 50 } } };
+          case 'Move X=50, Y=50':
+            return { ...prev, [characterId]: { ...characterState, position: { x: characterState.position.x + 50, y: characterState.position.y + 50 } } };
+          case 'Go to (0,0)':
+            return { ...prev, [characterId]: { ...characterState, position: { x: 0, y: 0 } } };
+          case 'Go to random position':
+            return { ...prev, [characterId]: { ...characterState, position: { x: Math.random() * 200, y: Math.random() * 200 } } };
+          case 'Say Hello':
+            return { ...prev, [characterId]: { ...characterState, message: 'Hello' } };
+          case 'Rotate 180':
+            return { ...prev, [characterId]: { ...characterState, rotation: characterState.rotation + 180 } };
+          default:
+            return prev;
         }
-    }
-};
-
-// New helper function to execute a single action
-const executeAction = async (action) => {
-    switch (action) {
-        case 'Increase Size':
-            setSize((prevSize) => prevSize + 10);
-            break;
-        case 'Decrease Size':
-            setSize((prevSize) => Math.max(prevSize - 10, 10));
-            break;
-        case 'Move X by 50':
-            setPosition((prevPos) => ({ ...prevPos, x: Math.ceil(prevPos.x + 50) }));
-            break;
-        case 'Move Y by 50':
-            setPosition((prevPos) => ({ ...prevPos, y: Math.ceil(prevPos.y + 50) }));
-            break;
-        case 'Move X=50, Y=50':
-            setPosition((prevPos) => ({ ...prevPos, x: Math.ceil(prevPos.x + 50), y: Math.ceil(prevPos.y + 50) }));
-            break;
-        case 'Go to (0,0)':
-            setPosition({ x: 0, y: 0 });
-            break;
-        case 'Go to random position':
-            setPosition({
-                x: Math.ceil(Math.random() * 200),
-                y: Math.ceil(Math.random() * 200),
-            });
-            break;
-        case 'Say Hello':
-            setMessage("Hello");
-            break;
-        case 'Say Hello for 1 sec':
-            setMessage("Hello");
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setMessage("");
-            break;
-        case 'Rotate 180':
-            setRotation((prevRotation) => prevRotation + 180);
-            break;
-        default:
-            console.log(`Unhandled action: ${action}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-};
-
-// New helper function to execute a list of actions
-const executeActions = async (actions) => {
-    for (const action of actions) {
-        await executeAction(action);
-    }
-};
-
-
-  const handlePositionChange = (axis: 'x' | 'y', value: string) => {
-    setPosition((prev) => ({ ...prev, [axis]: parseFloat(value) }));
-  };
-
-  const renderCharacter = ({ item }: any) => (
-    <TouchableOpacity
-      onPress={() => {
-        navigation.navigate('Action', { character: item });
-        setSelectedCharacter(item);
-      }}
-      style={styles.characterContainer}
-    >
-      <Image source={item.image} style={styles.characterIcon} />
-      <Text>{item.name}</Text>
-    </TouchableOpacity>
+      });
+      if (action === 'Say Hello') {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setCharacterStates((prev) => ({
+          ...prev,
+          [characterId]: { ...prev[characterId], message: '' },
+        }));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    },
+    []
   );
+
+  const handlePlay = useCallback(async () => {
+    // Iterate over each character and execute its specific actions
+    for (const character of characters) {
+      // Get the specific actions for this character (assuming actions[character.id] holds individual actions)
+      const characterActions = actions?.[character.id] || []; // Get character-specific actions
+  
+      for (const action of characterActions) {
+        if (action === 'Repeat') {
+          const repeatActions = [...characterActions];
+          for (const repeatAction of repeatActions) {
+            await executeAction(repeatAction, character.id);
+          }
+        } else {
+          await executeAction(action, character.id);
+        }
+      }
+    }
+  }, [actions, executeAction]);
+  
 
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
       <View style={styles.topBar}>
         <Image source={require('../assets/scratch_logo.png')} style={styles.logo} />
         <Text style={styles.signInText}>Sign In</Text>
       </View>
 
-      {/* Main Stage (Sprite Display) */}
       <View style={styles.stage}>
-        <PanGestureHandler
-          onGestureEvent={handleGesture}
-          onHandlerStateChange={(event) => {
-            if (event.nativeEvent.state === State.END) {
-              handleGestureEnd(event);
-            }
-          }}
-        >
-         
-
-          <Animated.View
-            
-            style={[
-              styles.sprite,
-              {
-                transform: [
-                  { translateX: Animated.add(translateX, new Animated.Value(position.x)) },
-                  { translateY: Animated.add(translateY, new Animated.Value(position.y)) },
-                  { rotate: `${rotation}deg` }, // Apply rotation
-                ],
-                // width: size,
-                // height: size,
-                // borderColor:"black",
-                // borderWidth:1,
-              },
-            ]}
+        {characters.map((character) => {
+          const characterState = characterStates[character.id];
+          const animatedStyle = {
+            transform: [
+              { translateX: characterState.position.x },
+              { translateY: characterState.position.y },
+              { rotate: `${characterState.rotation}deg` },
+            ],
+          };
+          return (
+            <PanGestureHandler
+              key={character.id}
+              onGestureEvent={Animated.event(
+                [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
+                { useNativeDriver: false }
+              )}
+              onHandlerStateChange={(event) =>
+                event.nativeEvent.state === State.END && handleGestureEnd(character.id.toString(), event)
+              }
             >
-              <Image source={selectedCharacter.image}  style={{
-                width: size,
-                height: size,
-              }}/>
-              {message !== '' && <Text style={{textAlign:"center"}}>{message}</Text>}
-              </Animated.View>         
-        </PanGestureHandler>
+              <Animated.View style={[styles.sprite, animatedStyle]}>
+                <Image source={character.image} style={{ width: characterState.size, height: characterState.size }} />
+                {characterState.message !== '' && <Text style={{ textAlign: 'center' }}>{characterState.message}</Text>}
+              </Animated.View>
+            </PanGestureHandler>
+          );
+        })}
       </View>
 
-      {/* Control Bar */}
       <View style={styles.controlBar}>
-        <Text>Sprite: {selectedCharacter.name}</Text>
-        <TouchableOpacity onPress={() => handlePlay()}>
+        <TouchableOpacity onPress={handlePlay}>
           <Text>Play</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleReset()}>
+        <TouchableOpacity onPress={handleReset}>
           <Text>Reset</Text>
         </TouchableOpacity>
-
-        <View style={styles.positionControls}>
-          <Text>X</Text>
-          <TextInput
-            style={styles.input}
-            value={position.x.toString()}
-            onChangeText={(value) => handlePositionChange('x', value)}
-            keyboardType="numeric"
-          />
-          <Text>Y</Text>
-          <TextInput
-            style={styles.input}
-            value={position.y.toString()}
-            onChangeText={(value) => handlePositionChange('y', value)}
-            keyboardType="numeric"
-          />
-        </View>
       </View>
 
-      {/* Character List Section */}
       <View style={styles.characterListSection}>
         <FlatList
           data={characters}
           horizontal
-          keyExtractor={(item) => item.id}
-          renderItem={renderCharacter}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigation.navigate('Action', { character: item })} style={styles.characterContainer}>
+              <Image source={item.image} style={styles.characterIcon} />
+              <Text>{item.name}</Text>
+            </TouchableOpacity>
+          )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.characterList}
         />
@@ -227,14 +202,15 @@ const executeActions = async (actions) => {
   );
 };
 
+
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer independent>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Action" component={ActionScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Action" component={ActionScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

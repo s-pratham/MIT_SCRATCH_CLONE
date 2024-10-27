@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.pratham96.Sticker"
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +32,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "23b4dcae-822c-4b14-9194-3d52b02ffccf"
+      }
+    },
+    "owner": "pratham96",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/23b4dcae-822c-4b14-9194-3d52b02ffccf"
     }
   }
 }

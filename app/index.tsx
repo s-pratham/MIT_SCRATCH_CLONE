@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, TextInput, Animated } from 'react-native';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../app/types';
@@ -16,7 +16,6 @@ const characters = [
 
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
-// Define a type for each character's state
 type CharacterState = {
   size: number;
   position: { x: number; y: number };
@@ -24,14 +23,14 @@ type CharacterState = {
   message: string;
 };
 
-// Define the main state type
 type CharacterStates = {
   [key: string]: CharacterState;
 };
 
-const HomeScreen = ({ navigation }: any) => {
+const HomeScreen = ({ navigation }: any) => { 
   const route = useRoute<HomeScreenRouteProp>();
-  const { actions } = route.params || {};
+  const initialActions = route.params?.actions || {};
+  const [actions, setActions] = useState(initialActions); // Initialize with actions from route params
 
   const [characterStates, setCharacterStates] = useState<CharacterStates>(
     characters.reduce((acc, char) => ({
@@ -117,13 +116,30 @@ const HomeScreen = ({ navigation }: any) => {
     []
   );
 
+  const addActionForCharacter = (characterId, newAction) => {
+    setActions((prevActions) => {
+      const updatedActions = { ...prevActions };
+      updatedActions[characterId] = newAction; // Replace or add the new action
+      console.log(`Updated actions for ${characterId}:`, updatedActions[characterId]);
+      return updatedActions;
+    });
+  };
+
+  // Effect to update actions when route params change
+  useEffect(() => {
+    const newActions = route.params?.actions || {};
+    Object.entries(newActions).forEach(([characterId, action]) => {
+      addActionForCharacter(characterId, action);
+    });
+  }, [route.params?.actions]);
+
   const handlePlay = useCallback(async () => {
-    // Iterate over each character and execute its specific actions
-    for (const character of characters) {
-      // Get the specific actions for this character (assuming actions[character.id] holds individual actions)
-      const characterActions = actions?.[character.id] || []; // Get character-specific actions
-  
-      for (const action of characterActions) {
+    console.log("Final Actions:", actions); // Log the actions to verify they are set correctly
+    const playActions = characters.map((character) => {
+      const characterActions = actions[character.id] || []; // Retrieve actions by id
+
+      return characterActions.reduce(async (prevAction, action) => {
+        await prevAction;
         if (action === 'Repeat') {
           const repeatActions = [...characterActions];
           for (const repeatAction of repeatActions) {
@@ -132,10 +148,11 @@ const HomeScreen = ({ navigation }: any) => {
         } else {
           await executeAction(action, character.id);
         }
-      }
-    }
+      }, Promise.resolve());
+    });
+
+    await Promise.all(playActions); // Run all character actions concurrently
   }, [actions, executeAction]);
-  
 
   return (
     <View style={styles.container}>
@@ -189,7 +206,13 @@ const HomeScreen = ({ navigation }: any) => {
           horizontal
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('Action', { character: item })} style={styles.characterContainer}>
+            <TouchableOpacity 
+              onPress={() => {
+                addActionForCharacter(item.id, 'Move X by 50'); // Example action addition
+                navigation.navigate('Action', { character: item });
+              }} 
+              style={styles.characterContainer}
+            >
               <Image source={item.image} style={styles.characterIcon} />
               <Text>{item.name}</Text>
             </TouchableOpacity>
@@ -201,7 +224,6 @@ const HomeScreen = ({ navigation }: any) => {
     </View>
   );
 };
-
 
 const Stack = createStackNavigator();
 
@@ -246,6 +268,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   sprite: {
+    position: "absolute",
     width: 50,
     height: 50,
   },

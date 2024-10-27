@@ -57,7 +57,7 @@ export default function ActionScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>{"< Back"}</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>{`Scratch Action Editor - ${character.name}`}</Text>
+          <Text style={styles.title}>{'Scratch Action Editor'}</Text>
           <TouchableOpacity onPress={handleDone}>
             <Text style={styles.doneButton}>Done</Text>
           </TouchableOpacity>

@@ -1,50 +1,40 @@
-# Welcome to your Expo app 👋
+# Scratch Clone in React Native
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A **Scratch** clone developed using **React Native** and **Expo**, designed to simulate the interactive coding environment found on [Scratch](https://scratch.mit.edu/). This project brings similar features to mobile devices, allowing users to manipulate sprites, execute actions, and interact with an intuitive visual coding environment.
 
-## Get started
+[Download on Android](https://expo.dev/accounts/pratham96/projects/Sticker/builds/18f38236-887c-4471-a71e-298d3cf7c8cf)
 
-1. Install dependencies
+## Table of Contents
 
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Screenshots](#screenshots)
+- [Technologies Used](#technologies-used)
+- [Acknowledgements](#acknowledgements)
+
+---
+
+## Project Overview
+
+This project is a mobile-friendly, React Native clone of **Scratch**, an open-source visual programming language and online community. The app enables users to create projects by combining sprites and actions, interacting with them visually, and executing actions. Designed for learning and creativity, it’s a fun introduction to programming basics on a mobile platform.
+
+## Features
+
+- **Sprite Management**: Add, manipulate, and position sprites on a visual stage.
+- **Actions**: Apply actions such as movement, rotation, and scaling to sprites.
+- **Collision Detection**: Swap actions between sprites when they collide.
+- **Gesture Control**: Move sprites on the stage using drag gestures.
+- **Reset and Play Controls**: Reset all sprites to their initial state or play a sequence of actions.
+- **Expandability**: Codebase is designed for easy extension to add more actions or sprite types.
+
+## Installation
+
+Follow these steps to install the project locally:
+
+1. **Clone the Repository**:
    ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   git clone https://github.com/yourusername/scratch-clone.git
+   cd scratch-clone

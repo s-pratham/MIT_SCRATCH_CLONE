@@ -36,8 +36,8 @@ Follow these steps to install the project locally:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/scratch-clone.git
-   cd scratch-clone
+   git clone https://github.com/s-pratham/MIT_SCRATCH_CLONE
+   cd MIT_SCRATCH_CLONE
    ```
 
 2. **Install Dependencies**:
@@ -49,7 +49,7 @@ Follow these steps to install the project locally:
 3. **Start the App**:
    Launch the Expo development server.
    ```bash
-   expo start
+   npm start
    ```
 
    Use the Expo Go app on your mobile device or an Android/iOS emulator to view the project.
@@ -70,15 +70,11 @@ To directly install the app on an Android device, download it from [this link](h
 
 The project is organized into the following key folders and files:
 
-- **`App.tsx`**: The main app component where navigation is set up.
-- **`/screens`**: Contains screen components like `HomeScreen` and `ActionScreen`.
+- **`index.tsx`**: The main app component where navigation is set up.
+- **`/screens`**: Contains screen components like `Home` and `ActionScreen`.
 - **`/components`**: Holds reusable UI components used across screens.
 - **`/assets`**: Contains images and other static assets.
 - **`/types`**: Contains TypeScript types and interfaces.
-
-## Screenshots
-
-*(Include screenshots or GIFs demonstrating app functionality)*
 
 ## Technologies Used
 
@@ -94,7 +90,7 @@ This project is inspired by the Scratch project on [Scratch's Official Website](
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project has no assigned license.
 
 ---
 

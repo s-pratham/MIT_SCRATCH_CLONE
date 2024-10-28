@@ -38,3 +38,64 @@ Follow these steps to install the project locally:
    ```bash
    git clone https://github.com/yourusername/scratch-clone.git
    cd scratch-clone
+   ```
+
+2. **Install Dependencies**:
+   Make sure you have [Node.js](https://nodejs.org) and [Expo CLI](https://docs.expo.dev/get-started/installation/) installed.
+   ```bash
+   npm install
+   ```
+
+3. **Start the App**:
+   Launch the Expo development server.
+   ```bash
+   expo start
+   ```
+
+   Use the Expo Go app on your mobile device or an Android/iOS emulator to view the project.
+
+### Android Installation
+
+To directly install the app on an Android device, download it from [this link](https://expo.dev/accounts/pratham96/projects/Sticker/builds/18f38236-887c-4471-a71e-298d3cf7c8cf).
+
+## Getting Started
+
+1. **Open the App** and explore the Scratch-like features:
+   - Add a new sprite to the stage by tapping the **"+"** button.
+   - Apply actions to sprites and watch them move or rotate on the stage.
+   - Reset the sprites to bring them back to their default positions.
+2. **Experiment with different actions and gestures** to fully explore the app’s capabilities.
+
+## Project Structure
+
+The project is organized into the following key folders and files:
+
+- **`App.tsx`**: The main app component where navigation is set up.
+- **`/screens`**: Contains screen components like `HomeScreen` and `ActionScreen`.
+- **`/components`**: Holds reusable UI components used across screens.
+- **`/assets`**: Contains images and other static assets.
+- **`/types`**: Contains TypeScript types and interfaces.
+
+## Screenshots
+
+*(Include screenshots or GIFs demonstrating app functionality)*
+
+## Technologies Used
+
+- **React Native** with **Expo**: Framework for cross-platform mobile app development.
+- **TypeScript**: Provides type safety and better developer experience.
+- **React Navigation**: Handles navigation and routing between screens.
+- **React Native Gesture Handler**: Enables advanced gesture control for moving and manipulating sprites.
+- **Expo**: Simplifies development and distribution of the app.
+
+## Acknowledgements
+
+This project is inspired by the Scratch project on [Scratch's Official Website](https://scratch.mit.edu/). Thanks to the open-source community for resources and tutorials that helped in building this app.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Feel free to contribute, report issues, or suggest new features to enhance the project!

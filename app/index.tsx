@@ -11,7 +11,7 @@ const characters = [
   { id: 1, name: 'Cat', image: require('../assets/cat.png') },
   { id: 2, name: 'Dog', image: require('../assets/dog.png') },
   { id: 3, name: 'Penguin', image: require('../assets/penguin.png') },
-  { id: 4, name: 'Scratch', image: require('../assets/scratch_logo.png') },
+  { id: 4, name: 'Scratch', image: require('../assets/scratch.png') },
 ];
 
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
@@ -31,7 +31,7 @@ const HomeScreen = ({ navigation }: any) => {
   const route = useRoute<HomeScreenRouteProp>();
   const initialActions = route.params?.actions || {};
   const [actions, setActions] = useState(initialActions); // Initialize with actions from route params
-
+  const [visibleCharacters, setVisibleCharacters] = useState<number[]>([]);
   const [characterStates, setCharacterStates] = useState<CharacterStates>(
     characters.reduce((acc, char) => ({
       ...acc,
@@ -65,6 +65,36 @@ const HomeScreen = ({ navigation }: any) => {
     },
     []
   );
+
+  const checkAndHandleCollisions = () => {
+    const newActions = { ...actions }; // Create a copy of actions
+    const charactersArray = Object.entries(characterStates);
+  
+    // Check for collisions between each pair of characters
+    for (let i = 0; i < charactersArray.length; i++) {
+      for (let j = i + 1; j < charactersArray.length; j++) {
+        const [charIdA, stateA] = charactersArray[i];
+        const [charIdB, stateB] = charactersArray[j];
+  
+        // Check if both characters occupy the same position and are not at the default position (0, 0)
+        if (
+          stateA.position.x === stateB.position.x &&
+          stateA.position.y === stateB.position.y &&
+          !(stateA.position.x === 0 && stateA.position.y === 0)
+        ) {
+          // Swap actions between the two characters
+          const tempAction = newActions[charIdA];
+          newActions[charIdA] = newActions[charIdB];
+          newActions[charIdB] = tempAction;
+  
+          console.log(`Collision detected between ${charIdA} and ${charIdB}. Actions swapped.`);
+        }
+      }
+    }
+  
+    setActions(newActions); // Update the actions state with swapped actions
+  };
+  
 
   const handleReset = useCallback(() => {
     setCharacterStates((prev) =>
@@ -135,24 +165,36 @@ const HomeScreen = ({ navigation }: any) => {
 
   const handlePlay = useCallback(async () => {
     console.log("Final Actions:", actions); // Log the actions to verify they are set correctly
+
     const playActions = characters.map((character) => {
       const characterActions = actions[character.id] || []; // Retrieve actions by id
 
       return characterActions.reduce(async (prevAction, action) => {
         await prevAction;
-        if (action === 'Repeat') {
-          const repeatActions = [...characterActions];
-          for (const repeatAction of repeatActions) {
-            await executeAction(repeatAction, character.id);
-          }
-        } else {
-          await executeAction(action, character.id);
-        }
+        await executeAction(action, character.id);
+        checkAndHandleCollisions(); // Check for collisions after each action
       }, Promise.resolve());
     });
 
     await Promise.all(playActions); // Run all character actions concurrently
   }, [actions, executeAction]);
+
+  const addCharacterToStage = () => {
+    const nextCharacter = characters.find((char) => !visibleCharacters.includes(char.id));
+    if (nextCharacter) {
+      setVisibleCharacters((prev) => [...prev, nextCharacter.id]);
+      setCharacterStates((prev) => ({
+        ...prev,
+        [nextCharacter.id]: {
+          size: 50,
+          position: { x: 0, y: 0 },
+          rotation: 0,
+          message: '',
+        },
+      }));
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -162,8 +204,9 @@ const HomeScreen = ({ navigation }: any) => {
       </View>
 
       <View style={styles.stage}>
-        {characters.map((character) => {
-          const characterState = characterStates[character.id];
+        {visibleCharacters.map((characterId) => {
+          const character = characters.find((char) => char.id === characterId);
+          const characterState = characterStates[characterId];
           const animatedStyle = {
             transform: [
               { translateX: characterState.position.x },
@@ -173,13 +216,13 @@ const HomeScreen = ({ navigation }: any) => {
           };
           return (
             <PanGestureHandler
-              key={character.id}
+              key={characterId}
               onGestureEvent={Animated.event(
                 [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
                 { useNativeDriver: false }
               )}
               onHandlerStateChange={(event) =>
-                event.nativeEvent.state === State.END && handleGestureEnd(character.id.toString(), event)
+                event.nativeEvent.state === State.END && handleGestureEnd(characterId.toString(), event)
               }
             >
               <Animated.View style={[styles.sprite, animatedStyle]}>
@@ -208,7 +251,7 @@ const HomeScreen = ({ navigation }: any) => {
           renderItem={({ item }) => (
             <TouchableOpacity 
               onPress={() => {
-                addActionForCharacter(item.id, 'Move X by 50'); // Example action addition
+                addActionForCharacter(item.id, 'Move X by 50');
                 navigation.navigate('Action', { character: item });
               }} 
               style={styles.characterContainer}
@@ -220,6 +263,9 @@ const HomeScreen = ({ navigation }: any) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.characterList}
         />
+        <TouchableOpacity onPress={addCharacterToStage} style={styles.addButton}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -308,5 +354,19 @@ const styles = StyleSheet.create({
   characterIcon: {
     width: 50,
     height: 50,
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  addButtonText: {
+    color: '#FFF',
+    fontSize: 30,
+    fontWeight: 'bold',
   },
 });
